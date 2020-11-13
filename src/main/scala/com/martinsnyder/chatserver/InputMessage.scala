@@ -57,7 +57,7 @@ object InputMessage {
             json <- parser.parse(text)
             play <- Play.parse(user, json)
           } yield play
-      }.getOrElse(InvalidInput(user, s"invalid json $text"))
+      }.getOrElse(Chat(user, text))
     }
 
 

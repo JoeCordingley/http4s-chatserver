@@ -20,7 +20,8 @@ import org.http4s.{HttpRoutes, MediaType, StaticFile}
 class ChatRoutes[F[_]: Sync: ContextShift](
     chatState: Ref[F, ChatState],
     queue: Queue[F, InputMessage],
-    topic: Topic[F, OutputMessage]
+    topic: Topic[F, OutputMessage],
+    lastMessage: Option[InputMessage] = None
 ) extends Http4sDsl[F] {
 
   private val blocker = {
