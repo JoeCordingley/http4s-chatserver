@@ -92,5 +92,6 @@ class ChatRoutes[F[_]: Sync: ContextShift](
 
         // Build the WebSocket handler
         WebSocketBuilder[F].build(toClient, inputPipe)
+
     }
 }
