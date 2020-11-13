@@ -1,5 +1,10 @@
 package com.martinsnyder.chatserver
 
+import io.circe._ 
+import io.circe.generic.semiauto._
+import io.circe.parser
+import io.circe.syntax._
+
 /*
  * Trait for any input operation that could come from the user
  */
@@ -14,6 +19,17 @@ case class ListRooms(user: String)                  extends InputMessage
 case class ListMembers(user: String)                extends InputMessage
 case class Disconnect(user: String)                 extends InputMessage
 case class InvalidInput(user: String, text: String) extends InputMessage
+case class Play(user: String, uri: String) extends InputMessage
+object Play {
+  case class PlayCodec(play: String)
+  implicit val playCodecDecoder: Decoder[PlayCodec] = deriveDecoder
+  implicit val playCodecEncoder: Encoder[PlayCodec] = deriveEncoder
+  def parse(user: String, json: Json): Decoder.Result[Play] = json.as[PlayCodec].map(p  => Play(user,p.play))
+  case class UserPlay(user: String, message: PlayCodec)
+  implicit val userPlayEncoder: Encoder[UserPlay] = deriveEncoder
+
+  def toMessage(play: Play): String = UserPlay(play.user, PlayCodec(play.uri)).asJson.toString
+}
 
 object InputMessage {
   val DefaultRoomName = "default"
@@ -36,8 +52,15 @@ object InputMessage {
       case ("/rooms", _, _)    => ListRooms(user)
       case ("/members", _, _)  => ListMembers(user)
       case (s"/$cmd", _, _)    => InvalidInput(user, s"unknown command - $cmd")
-      case _                   => Chat(user, text)
+      case _                   => {
+          for {
+            json <- parser.parse(text)
+            play <- Play.parse(user, json)
+          } yield play
+      }.getOrElse(InvalidInput(user, s"invalid json $text"))
     }
+
+
 
   private def splitFirstWord(text: String): (String, String) = {
     val trimmedText = text.trim

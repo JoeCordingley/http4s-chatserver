@@ -10,12 +10,16 @@ lazy val root = (project in file("."))
     name := "chatserver",
     version := Http4sVersion,
     scalaVersion := "2.13.1",
-    libraryDependencies ++= Seq(
+    libraryDependencies ++= List(
       "org.http4s"     %% "http4s-blaze-server" % Http4sVersion,
       "org.http4s"     %% "http4s-dsl"          % Http4sVersion,
       "org.specs2"     %% "specs2-core"         % Specs2Version % "test",
-      "ch.qos.logback" % "logback-classic"      % LogbackVersion
-    ),
+      "ch.qos.logback" % "logback-classic"      % LogbackVersion,
+    ) ::: List(
+      "io.circe" %% "circe-core",
+      "io.circe" %% "circe-generic",
+      "io.circe" %% "circe-parser"
+    ).map(_ % "0.12.3"),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.10.3"),
     addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1"),
     mappings in Universal ++= directory(baseDirectory.value / "static"),

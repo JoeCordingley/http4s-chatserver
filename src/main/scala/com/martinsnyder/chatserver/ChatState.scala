@@ -68,6 +68,15 @@ case class ChatState(
 
     case InvalidInput(user, text) =>
       (this, Seq(SendToUser(user, s"Invalid input: $text")))
+
+    case p @ Play(user, text) =>
+      userRooms.get(user) match {
+        case Some(room) =>
+          (this, sendToRoom(room, Play.toMessage(p)))
+
+        case None =>
+          (this, Seq(SendToUser(user, "You are not currently in a room")))
+      }
   }
 
   private def sendToRoom(room: String, text: String): Seq[OutputMessage] = {
