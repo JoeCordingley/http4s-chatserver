@@ -80,9 +80,9 @@ case class ChatState(
       val nextMembers = roomMembers.getOrElse(room, Set()) - user
       val nextState =
         if (nextMembers.isEmpty)
-          ChatState(userRooms - user, roomMembers - room)
+          this.copy(userRooms = userRooms - user, roomMembers - room)
         else
-          ChatState(userRooms - user, roomMembers + (room -> nextMembers))
+          this.copy(userRooms = userRooms - user, roomMembers = roomMembers + (room -> nextMembers))
 
       // Send to "previous" room population to include the leaving user
       (nextState, sendToRoom(room, s"$user has left $room"))
@@ -92,7 +92,7 @@ case class ChatState(
 
   private def addToRoom(user: String, room: String): (ChatState, Seq[OutputMessage]) = {
     val nextMembers = roomMembers.getOrElse(room, Set()) + user
-    val nextState   = ChatState(userRooms + (user -> room), roomMembers + (room -> nextMembers))
+    val nextState   = this.copy(userRooms = userRooms + (user -> room), roomMembers = roomMembers + (room -> nextMembers))
 
     // Send to "next" room population to include the joining user
     (nextState, nextState.sendToRoom(room, s"$user has joined $room"))
