@@ -8,7 +8,7 @@ object ChatState {
 case class ChatState(
     userRooms: Map[String, String],
     roomMembers: Map[String, Set[String]],
-    lastMessage: Option[Play] = None
+    lastMessage: Map[String, Play] = Map.empty
 ) {
 
   def process(msg: InputMessage): (ChatState, Seq[OutputMessage]) = msg match {
@@ -29,7 +29,7 @@ case class ChatState(
           val (intermediateState, _) = removeFromCurrentRoom(user)
           val (finalState, enterMessages)        = intermediateState.addToRoom(user, toRoom)
 
-          (finalState,  lastMessage.toSeq.map(p => SendToUser(user, Play.toMessage(p))) ++ enterMessages)
+          (finalState,  lastMessage.get(toRoom).map(p => SendToUser(user, Play.toMessage(p))).toSeq ++ enterMessages)
 
     case ListRooms(user) =>
       val roomList = roomMembers.keys.toList.sorted
@@ -61,7 +61,7 @@ case class ChatState(
     case p @ Play(user, text) =>
       userRooms.get(user) match {
         case Some(room) =>
-          (this.copy(lastMessage = Some(p)), sendToRoom(room, Play.toMessage(p)))
+          (this.copy(lastMessage = lastMessage + ( room -> p)), sendToRoom(room, Play.toMessage(p)))
 
         case None =>
           (this, Seq(SendToUser(user, "You are not currently in a room")))
