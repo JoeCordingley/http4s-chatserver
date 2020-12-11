@@ -25,23 +25,11 @@ case class ChatState(
       }
 
     case EnterRoom(user, toRoom) =>
-      userRooms.get(user) match {
-        case None =>
-          // First time in - welcome and enter
-          val (finalState, enterMessages) = addToRoom(user, toRoom)
-
-          (finalState, lastMessage.toSeq.map(p => SendToUser(user, Play.toMessage(p))) ++ enterMessages)
-
-        case Some(currentRoom) if currentRoom == toRoom =>
-          (this, Seq(SendToUser(user, "You are already in that room!")))
-
-        case Some(_) =>
           // Already in - move from one room to another
-          val (intermediateState, leaveMessages) = removeFromCurrentRoom(user)
+          val (intermediateState, _) = removeFromCurrentRoom(user)
           val (finalState, enterMessages)        = intermediateState.addToRoom(user, toRoom)
 
-          (finalState, leaveMessages ++ enterMessages)
-      }
+          (finalState,  lastMessage.toSeq.map(p => SendToUser(user, Play.toMessage(p))) ++ enterMessages)
 
     case ListRooms(user) =>
       val roomList = roomMembers.keys.toList.sorted
